@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Previsão de Entregas Oficinas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500&display=swap">
+<style>
+/* Paleta e tipografia: Manual de Uso da Marca Carmak (#a9cc44 lima · #39653b verde · #003938 escuro · #ffffff · #eb0a1e vermelho · Roboto) */
+:root{
+  --lima:#a9cc44; --verde:#39653b; --escuro:#003938; --vermelho:#eb0a1e; --branco:#ffffff;
+  --bg:#eef1ee; --panel:#ffffff; --ink:#003938; --ink2:#4a5a54; --muted:#7d8d86; --line:#d6ddd6; --line2:#e7ece7;
+  --head:#003938; --head-ink:#ffffff; --head-sub:#b9d27a;
+  --accent:#39653b; --accent-ink:#39653b; --accent-soft:#e6efd0; --bar:#a9cc44;
+  --late:#eb0a1e; --late-soft:#fde3e5; --soon:#d98a1c; --soon-soft:#fbeed8;
+  --ok:#39653b; --ok-soft:#dde9dd; --none:#8a9892; --none-soft:#e6ebe8; --ready:#7fa12a; --ready-soft:#eef5da; --done:#003938; --done-soft:#dbe6e5;
+  --seg-on:#003938; --seg-on-ink:#ffffff;
+  --display:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Roboto Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#081c1b; --panel:#0f2826; --ink:#e8f0ea; --ink2:#b3c4bb; --muted:#80958c; --line:#21403d; --line2:#183331;
+  --head:#002a29; --head-ink:#ffffff; --head-sub:#a9cc44;
+  --accent:#a9cc44; --accent-ink:#b9d86a; --accent-soft:#223a1f; --bar:#a9cc44;
+  --late:#ff4d5c; --late-soft:#3d1a1f; --soon:#f0a445; --soon-soft:#3a2c18;
+  --ok:#6fae71; --ok-soft:#1b3a25; --none:#8fa39b; --none-soft:#1f3432; --ready:#a9cc44; --ready-soft:#26381a; --done:#8cc4c0; --done-soft:#173532;
+  --seg-on:#a9cc44; --seg-on-ink:#003938;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#081c1b; --panel:#0f2826; --ink:#e8f0ea; --ink2:#b3c4bb; --muted:#80958c; --line:#21403d; --line2:#183331;
+  --head:#002a29; --head-ink:#ffffff; --head-sub:#a9cc44;
+  --accent:#a9cc44; --accent-ink:#b9d86a; --accent-soft:#223a1f; --bar:#a9cc44;
+  --late:#ff4d5c; --late-soft:#3d1a1f; --soon:#f0a445; --soon-soft:#3a2c18;
+  --ok:#6fae71; --ok-soft:#1b3a25; --none:#8fa39b; --none-soft:#1f3432; --ready:#a9cc44; --ready-soft:#26381a; --done:#8cc4c0; --done-soft:#173532;
+  --seg-on:#a9cc44; --seg-on-ink:#003938;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:24px;font-weight:900;letter-spacing:0;color:var(--head-ink)}
+h2{font-size:15px;font-weight:700;color:var(--ink)}
+.num{font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:var(--head);border-bottom:5px solid var(--lima);border-radius:12px;padding:14px 18px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.mark{height:44px;width:auto;background:#fff;border-radius:8px;padding:6px 10px;display:block;flex:none}
+.sub{color:var(--head-sub);font-size:13px;margin-top:2px}
+header.top .stamp{color:#d7e3dc}
+header.top .btn{background:var(--lima);border-color:var(--lima);color:#003938;font-weight:700}
+header.top .btn:hover{background:#bcd966}
+header.top .btn.ghost{background:transparent;color:#ffffff;border-color:#a9cc44;font-weight:500}
+header.top .btn.ghost:hover{background:rgba(169,204,68,.18)}
+[hidden]{display:none!important}
+.token-card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--lima);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;max-width:640px}
+.token-card h2{margin:0}
+.token-card p,.token-card ol{margin:0;color:var(--ink2);font-size:13px;line-height:1.55}
+.token-card ol{padding-left:20px}
+.token-row{display:flex;gap:8px;flex-wrap:wrap}
+.token-row input{flex:1 1 260px;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.token-row input:focus-visible{outline:2px solid var(--lima);outline-offset:1px}
+.token-err{color:var(--late);font-size:13px;font-weight:500}
+.btn.pri{background:var(--lima);border-color:var(--lima);color:#003938;font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#003938;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);z-index:50;max-width:calc(100% - 32px)}
+.sync{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
+.stamp{font-size:12px;color:var(--muted);white-space:nowrap}
+@media (min-width:1000px){
+  header.top{flex-wrap:nowrap}
+  .brand{flex:0 1 auto}
+  .brand h1{white-space:nowrap}
+  .sync{flex-wrap:nowrap;flex:0 0 auto}
+}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--none);margin-right:6px;vertical-align:1px}
+.dot.live{background:var(--ok)} .dot.busy{background:var(--accent);animation:pulse 1s infinite} .dot.err{background:var(--late)}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion: reduce){.dot.busy{animation:none}}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:6px;font-weight:500}
+.btn:hover{border-color:var(--lima)}
+.btn:focus-visible,.seg button:focus-visible,select:focus-visible{outline:2px solid var(--lima);outline-offset:2px}
+.btn[disabled]{opacity:.5;cursor:default}
+
+.filters{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.flabel{font-family:var(--display);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--ink2);padding:6px 12px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--seg-on);color:var(--seg-on-ink);font-weight:500}
+select{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.fgroup.search{flex:1 1 280px}
+.ms{position:relative;flex:1 1 260px;max-width:520px;min-width:0}
+.ms-field{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-height:36px;padding:4px 30px 4px 32px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:text;position:relative}
+.ms-field:focus-within{outline:2px solid var(--lima);outline-offset:1px}
+.ms-field svg{position:absolute;left:10px;top:10px;width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;pointer-events:none}
+.ms-chips{display:contents}
+.chip{display:inline-flex;align-items:center;gap:2px;max-width:100%;background:var(--accent-soft);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1px 2px 1px 9px;font-size:12px;font-weight:500}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+.chip button{border:0;background:transparent;color:var(--muted);font-size:14px;line-height:1;padding:1px 5px;border-radius:10px;cursor:pointer}
+.chip button:hover{color:var(--late);background:var(--line2)}
+.chip.more{padding-right:9px;background:var(--line2)}
+.ms-field input{flex:1 1 120px;min-width:100px;border:0;outline:0;font:inherit;background:transparent;color:var(--ink);padding:3px 2px}
+.ms-clear{position:absolute;right:4px;top:6px;border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ms-clear:hover{color:var(--ink);background:var(--line2)}
+.ms-panel{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 14px 34px -14px rgba(0,57,56,.35);overflow:hidden;min-width:260px}
+.ms-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--line2);background:var(--bg)}
+.ms-actions button{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:12px;font-weight:500;padding:4px 10px;border-radius:6px;cursor:pointer}
+.ms-actions button:hover{border-color:var(--lima)}
+.ms-count{margin-left:auto;font-size:12px;color:var(--muted)}
+.ms-list{list-style:none;margin:0;padding:4px 0;max-height:300px;overflow-y:auto}
+.ms-list li{display:flex;align-items:center;gap:10px;padding:6px 12px;cursor:pointer;font-size:13px}
+.ms-list li:hover,.ms-list li.act{background:var(--accent-soft)}
+.ms-list li input{width:16px;height:16px;accent-color:var(--verde);flex:none;pointer-events:none}
+.ms-list li .nm{flex:1;min-width:0}
+.ms-list li .nm mark{background:transparent;color:inherit;font-weight:700;text-decoration:underline;text-decoration-color:var(--lima);text-decoration-thickness:2px}
+.ms-list li .ft{font-size:11px;color:var(--muted);white-space:nowrap}
+.ms-list li.empty{cursor:default;color:var(--muted);justify-content:center}
+
+.banner{border:1px solid var(--late);background:var(--late-soft);color:var(--ink);border-radius:6px;padding:10px 14px;font-size:13px}
+.banner b{color:var(--late)}
+
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-top:4px solid var(--c,var(--ink))}
+.kpi .l{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)}
+.kpi .v{font-family:var(--display);font-size:42px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:var(--c,var(--ink))}
+.kpi .h{font-size:12px;color:var(--muted)}
+.note{font-size:12px;color:var(--muted)}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(0,57,56,.05),0 18px 40px -28px rgba(0,57,56,.25);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:var(--display);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);text-align:right;padding:6px 8px;border-bottom:2px solid var(--ink);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:6px 8px;border-bottom:1px solid var(--line2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+tr.late td:first-child{color:var(--late);font-weight:600}
+tr.cur td:first-child{font-weight:600}
+td.z{color:var(--muted)}
+.cell-bar{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.mini{height:8px;border-radius:2px;background:var(--bar);min-width:1px}
+
+/* stacked bar */
+.stack{display:flex;height:26px;border-radius:4px;overflow:hidden;background:var(--line2)}
+.stack span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.sit-list{display:flex;flex-direction:column;gap:6px}
+.sit-row{display:grid;grid-template-columns:130px 1fr 44px 48px;align-items:center;gap:10px;font-size:13px}
+.sit-row .track{height:10px;background:var(--line2);border-radius:2px;overflow:hidden}
+.sit-row .track span{display:block;height:100%}
+.sit-row .n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.sit-row .p{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* weeks chart */
+.weeks{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;align-items:end;height:170px;padding-top:18px;border-bottom:1px solid var(--line)}
+.wk{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.wk .b{width:70%;max-width:44px;background:var(--bar);border-radius:3px 3px 0 0;min-height:2px}
+.wk.now .b{background:var(--accent)}
+.wk .c{font-family:var(--mono);font-size:12px;font-weight:500}
+.wk-lbl{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;font-size:11px;color:var(--muted);text-align:center;line-height:1.25}
+
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:500;white-space:nowrap}
+.p-late{background:var(--late-soft);color:var(--late)} .p-soon{background:var(--soon-soft);color:var(--soon)}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-none{background:var(--none-soft);color:var(--ink2)} .p-ready{background:var(--ready-soft);color:var(--ready)} .p-done{background:var(--done-soft);color:var(--done)}
+td.wrap-t{white-space:normal;min-width:160px}
+.cli-name{font-weight:500}
+.cli-head{display:flex;align-items:flex-start;gap:6px}
+.sit-row > span:first-child{display:flex;align-items:center;min-width:0}
+.sit-row .legend{display:inline-flex}
+.caret{border:1px solid var(--line);background:var(--panel);color:var(--ink2);width:24px;height:24px;border-radius:6px;font-size:11px;line-height:1;cursor:pointer;flex:none;margin-top:1px;transition:transform .15s}
+.caret:hover{border-color:var(--lima);color:var(--ink)}
+.caret:focus-visible{outline:2px solid var(--lima);outline-offset:2px}
+tr.open .caret{transform:rotate(90deg);background:var(--lima);border-color:var(--lima);color:#003938}
+@media (prefers-reduced-motion: reduce){.caret{transition:none}}
+tr.cli-row.open td{border-bottom-color:transparent;background:var(--bg)}
+tr.ficha > td{padding:0 8px 12px;text-align:left;white-space:normal;background:var(--bg);border-bottom:1px solid var(--line)}
+.ficha-box{border:1px solid var(--line);border-left:4px solid var(--lima);border-radius:8px;background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.ficha-sum{font-size:13px;color:var(--ink2)}
+.ficha-sum b{color:var(--ink)}
+table.ficha-t{font-size:12.5px}
+table.ficha-t th{border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
+table.ficha-t th,table.ficha-t td{text-align:left;padding:5px 8px}
+table.ficha-t td{border-bottom:1px solid var(--line2)}
+table.ficha-t tbody tr:last-child td{border-bottom:0}
+.dt-main{font-weight:700;color:var(--ink)}
+.cli-sub{font-size:12px;color:var(--muted)}
+.pct{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.pct .t{width:60px;height:6px;background:var(--line2);border-radius:3px;overflow:hidden}
+.pct .t span{display:block;height:100%;background:var(--ready)}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.skeleton{color:var(--muted)}
+a{color:var(--accent-ink)}
+
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.wrap{padding-inline:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:34px}h1{font-size:23px}.sit-row{grid-template-columns:110px 1fr 36px 42px}.weeks{gap:4px}.wk-lbl{gap:4px;font-size:10px}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><img class="mark" alt="Carmak" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJMAAAAkCAMAAAC69PjqAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAERUExURf///5rNMQRkNZ3QMaPVMaDSMff6+IehiwBbNQBfNXKUeuHp5ABbKYK4MgBhNd3m4TpzTkeHMS52MIzAMhtlPkiGNHOrM5Oplm6iM5PHMdPf10F2UwBWIwBcJgBVFgBIAABWNVOLMmOdM0WANMDPxKDRPvD35Jexn1iTM7jbfQBIE8nXzleIaip0NR1pNSFvNez22kqAX6e7s3iWhTRxU4qydprLQ4K3IMbZvFKSJnCsGanWVrPcZsvnm9brsVB2Yz+ARoq3QWaJazR2AOLwzFiQFj+DF1yGcQBPJi9qLJDIFX+uXhBiAABNNY29VDdtQLjWmhBnHFeMUdrn0aLJdnWkS4WoegA6AHqoZc/kuLXWh0hILoYAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAa4SURBVFhH7Vdrc9vGFd0HFlyQAPgAuQRAgIBAmIRFEDAZx3RlyUkVyWGZOIr6bv7/D+ncuyBF0Z1Op2mdTifngwQs7t49ex/nSoT8il9BTLObL8phPEWwdSvvmOc2nxedzRevk8vIZgDLsiw7SqblYnlu9/nQ/fLNdrv1vKByLZm6gQcIVnZclW/PbT8PlmWiBOWcUuOi/s3V1uMUYBQWY/Lq3S+QQXMRx5ajaXC/uL55f61fhJJTJhWdn+/4r6PTixmTAbKgfNs2CXmnX6j31aa3Uy/+bU5mpxuGy2UYPjWL2UWEJ88HPBmF05gx5hoNjeDrDjF1mCjlrztk81t+4GR2EN1Tf+DH7OoPnU63c3ALl23drntDy7WGvUnZ3ujF7kMPUEHvhBN8PmByu9A2oQudls4OnOg3XXK3b55FvSRk/vJVc8jmYQJ4gEuGje+cENLu4fpk0ns44bSI7XpwwCqOHvAutzG+x2uTkPDEYDBY1Xa0hv2dGCi52SEyVNxvyM0xTh+a2yHMGP3VcRvaYor+kpyQVqRdV/EQU6KRJ24WCKOB8Aq71yGkk8xgTQzsnJDQKg7fAZ6qI6icW0hcqowjJ65K8vIQJ34/PuG0uMxga1CxJSHLaCQMQ13mZBxXDqxn8RAjoWH2XF8cnIIrMZhuCGnbCo4Szu7WJKF1cTwXbYJ02iFLoGSNjOs3x3WvMt8d43T17ZMOmA81aoRRRG3kBBe4zPNp6ghKDSWnJ1EiuTUD46abOTTxrk2W7kx7NuokbzhxgUDX2eWCtIFTFbyYHzqNUv67t09B8+onTouoaD5YSag5CbUrYwaUeCZPowTWGS5fAAqPUu7s2qQVKUFpALeRPc2JOxkCxAhsOg8Ypv3N/AUeBuvG6DtwpvUq+P5YtJ213UgpL3blgZOMJSTD8N3oNEqEjCPFqfAlTClLzigXcB6rDEp5H7zMorwLnIRKXYDlg/jYZTgFTtme3CGnoDDgHGR2oUPyzXHe5VHfoDToGxA9exlqTmkK4RCOjM4G4zhyOOUzF8cnY6vVahW1WjsFgZG+oELZt8shcpJ6xEKuvai9BE6u2pP3GAGvhqr0QD6NCkVUfGgkg5ChhAT4Hz1OeWG3dT15GeSCKwvK/hnOOEEk2NpeQdoKuYI8rdwFcvI/SkDqA93Lhebkc3IDncYdTQTpVR5yUmVzRp70gfdMXgjKA5ctrBF2E1YBe1beiDNOGpbPKQ2k60JenZRhjXsKAYVh9JMwxLYr9rr7uRr+0FSxUC4WFHcemjMmDM5wUrdyODUKyZCTNq6t9RmjTzhZUlqM1QGlIqvqGipDrFytBce+83y5Ns3SZsxd7V/h0BXZ6x8PnIreT7rIG2XObaAgRlVdZbDsNpwCsAoGUXk6VI6cxMzSmasdz1OWhNqj+GcQhkCe6VOwihag/4wxqa5RCkQx0bVOKR18+x6F08DBRMz2DgoH/UF+eSGBE1dVAfUUrCKYFZ9ycirsO6vglHsyPRVRXQiQSyQJbrlhTbvEBDFgULfAqT8xtU5x73HTcOpjkefJ6jgQtUENnIRKoc0pNQZ2/DxSC1Qi4fhZ5mcK7uF9RP6HYYNKAvqkrBgw8KDbQes3CQYKOfHRmrzUR6okvMMncf8FnNCDJqaH6QV1XUitT8wawYHByOo9q/ON3YeocA0sTWxcNeoDRqioFXKSk7Is1zuIJWg9Ie0pY2kjhrM20dHhftJIFndguoQJNDHN0F2/D8IdpFrH83U0wN0jaZ+S6j4wJRpGACFmBbxX1hBgMUdwQ80MbqgdDvoyFqCr0Odme8pSTSl4XJC5Hr+jNZnrERjIkJDSVoILL7XRn1wFnBvFjHKcwWVUe5xzo88g8Ee0kqpwnqD6lnIcJ9u1Q8BiOoLVC1iKYJvZtj3PUzvsYPM2kbpWvMcNIZrTdEwOI/Axf/92WDue440ux+ivHWWe46iZ43jZZQ63WjlQpSMWHxUWMmBH9iniGH814opv+keCnG6nUFXTHn41FysDo+s85ia5hgAHu5yY73TQZ4r/PoLN8XSiy9hMsCgR8PcTaaE7fG2dtN9y3P4U48Zg2XoC0lw0L83mP/zxPssyv2B2Of5S+b5/McyXmz/5iIGif27M4fzT7QCsoc34AO3/APMf4PT7P4O5LP+yk5IxO7Zh9lhs6MaWHkMff8b/CD8Td3/9+jG2rNP55FoWq/tb8fJfvtt/HHc/fnf/YcDSFKKTprIaXGRX+xc3d+eGnxXz+d9+erPdXjnO1Xa73+/p9ftXv1TensOcvwLM/zfY/D/j7+45u4eV03GfAAAAAElFTkSuQmCC">
+    <div>
+      <h1>Previsão de Entregas · Oficinas</h1>
+    </div>
+    </div>
+    <div class="sync">
+      <span class="stamp" id="stamp"><span class="dot" id="dot"></span>Conectando ao monday…</span>
+      <button id="exportCrono" type="button" hidden class="btn ghost" title="Exporta o cronograma dos clientes marcados no campo Cliente">Exportar cronograma</button>
+      <button id="exportXlsx" type="button" hidden class="btn ghost">Exportar Excel</button>
+      <button class="btn" id="refresh" type="button">Atualizar agora</button>
+      <button class="btn ghost" id="tokenReset" type="button" title="Trocar o token do monday usado neste navegador">Trocar token</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="fgroup"><span class="flabel">Filial</span>
+      <div class="seg" id="fFilial" role="group" aria-label="Filial"></div>
+    </div>
+    <div class="fgroup"><span class="flabel">Previsão por</span>
+      <div class="seg" id="fBase" role="group" aria-label="Data usada na previsão">
+        <button type="button" data-b="manut">Entrega Manutenção</button><button type="button" data-b="cliente">Entrega Cliente</button>
+      </div>
+    </div>
+    <div class="fgroup"><label class="flabel" for="fTipo">Tipo de demanda</label>
+      <select id="fTipo"><option value="Todos">Todos</option></select>
+    </div>
+    <div class="fgroup search"><label class="flabel" for="fCliente">Cliente</label>
+      <div class="ms" id="ms">
+        <div class="ms-field" id="msField">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <div class="ms-chips" id="msChips"></div>
+          <input id="fCliente" type="text" autocomplete="off" spellcheck="false" placeholder="Buscar e marcar clientes…"
+            role="combobox" aria-expanded="false" aria-controls="msPanel" aria-autocomplete="list">
+          <button type="button" class="ms-clear" id="fClienteClear" aria-label="Limpar clientes selecionados" hidden>×</button>
+        </div>
+        <div class="ms-panel" id="msPanel" hidden>
+          <div class="ms-actions">
+            <button type="button" id="msAll">Marcar todos</button>
+            <button type="button" id="msNone">Desmarcar todos</button>
+            <span class="ms-count" id="msCount"></span>
+          </div>
+          <ul class="ms-list" id="msList" role="listbox" aria-multiselectable="true"></ul>
+        </div>
+      </div>
+      <span class="note" id="fClienteInfo"></span>
+    </div>
+  </div>
+
+  <div id="banners"></div>
+
+  <section class="kpis" id="kpis" aria-label="Indicadores"></section>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="card-h"><h2>Previsão mensal (pendentes)</h2><span class="note">Filtro de filial não se aplica: filiais nas colunas</span></div>
+      <div class="scroll"><table id="tMensal"></table></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h2>Próximas 8 semanas</h2><span class="note" id="wkTotal"></span></div>
+      <div class="weeks" id="weeks"></div>
+      <div class="wk-lbl" id="wkLbl"></div>
+      <div class="note">Atrasados não entram nas semanas.</div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="card-h"><h2>Onde estão os pendentes</h2><span class="note">Status manutenção · em carteira</span></div>
+      <div class="scroll"><table id="tManut"></table></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h2>Situação dos equipamentos</h2><span class="note" id="sitTotal"></span></div>
+      <div class="stack" id="sitStack"></div>
+      <div class="sit-list" id="sitList"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-h"><h2>Atrasados</h2><span class="note" id="lateNote">Dias atraso = hoje − data de entrega</span></div>
+    <div class="scroll"><table id="tLate"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-h"><h2>Por cliente</h2><span class="note">Ordenado por atrasados e próxima entrega</span></div>
+    <div class="scroll"><table id="tCli"></table></div>
+  </section>
+</div>
+
+<!-- SheetJS 0.18.5 com suporte a estilos (cores no cronograma) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script>
+const SERVER = "monday.com";
+const TOOL = "all_monday_api";
+const BOARDS = [
+  { filial:"Matriz", id:18046150351, statusEq:null, cli:"date_mm6k348r", fab:"dropdown_mm6k3xah", loc:"dropdown_mm6k1xzw" },
+  { filial:"Itajaí", id:18423674470, statusEq:"text_mm6k7sg7", cli:"date_mm6kr6jj", fab:"dropdown_mm6k7q5c", loc:"dropdown_mm6kesfs" },
+  { filial:"Sumaré", id:18427073062, statusEq:"text_mm77x4wt", cli:"date_mm79kvje", fab:"dropdown_mm79bvej", loc:"dropdown_mm794r2d" },
+];
+const EXCLUDED_GROUPS = ["group_mkw5jva8","group_mm6vj550"]; // concluídas e entregues, canceladas
+const SUB_COLS = ["text_mkw4929k","text_mm5agexd","text_mkw46zez","status","color_mkw4rv2y","date_mm5axqas","text_mm6k7sg7","text_mm77x4wt",
+  "text_mkxkfeng","date_mm5akh8m", ...new Set(BOARDS.flatMap(b=>[b.cli,b.fab,b.loc]))];
+const FILIAIS = BOARDS.map(b=>b.filial);
+const SIT = [
+  {k:"Atrasado", c:"var(--late)", pill:"p-late"},
+  {k:"Próximos 7 dias", c:"var(--soon)", pill:"p-soon"},
+  {k:"No prazo", c:"var(--ok)", pill:"p-ok"},
+  {k:"Sem previsão", c:"var(--none)", pill:"p-none"},
+  {k:"Pronto p/ entrega", c:"var(--ready)", pill:"p-ready"},
+  {k:"Entregue", c:"var(--done)", pill:"p-done"},
+];
+const PEND = ["Atrasado","Próximos 7 dias","No prazo","Sem previsão"];
+// Máquina entregue continua visível (como "Entregue"); some só quando o projeto inteiro já foi entregue.
+function visiveis(rows){
+  const aberto = new Set();
+  for(const r of rows) if(r.sit!=="Entregue" && r.sit!=="Cancelado") aberto.add(r.filial+"|"+r.itemId);
+  return rows.filter(r=>r.sit!=="Cancelado" && aberto.has(r.filial+"|"+r.itemId));
+}
+// Status de manutenção: nomes padronizados entre as 3 filiais; variações antigas caem no nome atual
+const MANUT_ALIAS = {
+  "aguardando peca":"Aguardando Peças", "aguardando pecas":"Aguardando Peças",
+  "em andamento":"Manutenção Em Andamento", "manutencao em andamento":"Manutenção Em Andamento",
+  "aguardando bateria/carregador faltante":"Aguardando Bateria/Carregador", "aguardando bateria/carregador":"Aguardando Bateria/Carregador",
+  "aguardando retorno pos venda":"Aguardando Retorno Pós Venda",
+  "manutencao pausada":"Manutenção Pausada",
+  "aguardando equipamento":"Aguardando Equipamento",
+  "aguardando recebimento":"Aguardando Recebimento",
+  "aguardando mdo":"Aguardando MDO",
+};
+const manutLabel = m => { if(!m) return "(sem status)"; const k=String(m).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim(); return MANUT_ALIAS[k] || m; };
+
+const state = { rows:{}, errors:{}, filial:"Matriz", tipo:"Todos", clientes:new Set(), base:"manut", loading:false, updated:null };
+const norm = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+const matchCli = r => !state.clientes.size || state.clientes.has(r.cliente);
+try{ const s=JSON.parse(localStorage.getItem("pe-filters")||"{}"); if(s.filial) state.filial=s.filial; if(s.tipo) state.tipo=s.tipo; if(Array.isArray(s.clientes)) state.clientes=new Set(s.clientes); if(s.base==="cliente") state.base="cliente"; }catch(e){}
+// data de entrega usada em todo o painel: manutenção (oficina) ou cliente
+const withBase = r => ({...r, entregaManut:r.entrega, entrega: state.base==="cliente" ? r.entregaCli : r.entrega});
+const BASE_LBL = { manut:"Data de Entrega (Oficina)", cliente:"Previsão de Entrega (Cliente)" };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DAY = 86400000;
+function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function parseDate(s){ if(!s) return null; const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; }
+const fmtD = d => d ? d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : "—";
+const fmtDY = d => d ? d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"}) : "—";
+const MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+
+function situacao(r, t0){
+  if(/cancel/i.test(r.group)) return "Cancelado";
+  const man = norm(r.manut), eq = norm(r.statusEq);
+  // já entregue: Status Equipamento ou Status manutenção com "entregue" (ex.: "Concluído Entregue")
+  if(eq.includes("entregue") || man.includes("entregue")) return "Entregue";
+  // pronto: manutenção concluída (qualquer variação de "Concluído"), equipamento pronto ou demanda concluída
+  if(man.startsWith("concluid") || eq==="pronto para entrega" || norm(r.statusDem).startsWith("concluido")) return "Pronto p/ entrega";
+  if(!r.entrega) return "Sem previsão";
+  if(r.entrega < t0) return "Atrasado";
+  if(r.entrega <= new Date(t0.getTime()+7*DAY)) return "Próximos 7 dias";
+  return "No prazo";
+}
+
+function queryFor(boardId, cursor){
+  const cols = JSON.stringify(SUB_COLS);
+  // colunas do item pai vêm todas: a "Data Primeira entrega" é localizada pelo nome (o id muda se a coluna for recriada)
+  const pv = `column_values { id text ... on MirrorValue { display_value } ... on DateValue { date } }`;
+  const itemsSel = `items { id name group { title } ${pv} subitems { id name column_values(ids:${cols}) { id text } } }`;
+  if(cursor) return `query { next_items_page(limit:500, cursor:${JSON.stringify(cursor)}) { cursor ${itemsSel} } }`;
+  return `query { boards(ids:[${boardId}]) { columns { id title type } items_page(limit:500, query_params:{rules:[{column_id:"group", compare_value:${JSON.stringify(EXCLUDED_GROUPS)}, operator:not_any_of}]}) { cursor ${itemsSel} } } }`;
+}
+// "Data Primeira entrega" do item pai = espelho da data de entrega ao cliente dos equipamentos.
+// Localizada pelo nome: prefere o espelho "Data Primeira entrega"; enquanto um quadro ainda tiver o nome antigo, usa "Data Primeira entrega (Auto)".
+function pickPrimeiraCol(cols){
+  const byTitle = t => (cols||[]).filter(c=>norm(c.title)===t);
+  return byTitle("data primeira entrega").find(c=>c.type==="mirror")
+      || byTitle("data primeira entrega (auto)").find(c=>c.type==="mirror")
+      || byTitle("data primeira entrega")[0] || null;
+}
+// é a data do cliente: usada na visão Entrega Cliente; na visão Manutenção a primeira entrega é calculada pela data da oficina
+const usaPrimeiraMonday = boardId => state.base==="cliente" && !!(BOARDS.find(b=>b.id===boardId)||{}).primeiraCol;
+function colText(c){ return (c && (c.text || c.display_value || c.date)) || ""; }
+function parseOneDate(s){
+  const iso = parseDate(s); if(iso) return iso;
+  const br = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s); if(br) return new Date(+br[3],+br[2]-1,+br[1]);
+  return null;
+}
+function earliestDate(s){
+  // o espelho devolve a data de cada equipamento ("2026-10-03, 2026-10-10"): fica a menor
+  const ds = String(s||"").split(",").map(x=>parseOneDate(x.trim())).filter(Boolean);
+  return ds.length ? new Date(Math.min(...ds)) : null;
+}
+function unwrap(res){
+  let p = res && res.payload !== undefined ? res.payload : res;
+  if(typeof p === "string"){ try{ p = JSON.parse(p); }catch(e){ throw {code:"tool_error", message:p.slice(0,200)}; } }
+  if(p && p.data && !p.boards && !p.next_items_page) p = p.data;
+  return p;
+}
+
+async function loadBoard(mcp, b){
+  const out=[]; let cursor=null, first=true, guard=0;
+  while((first || cursor) && guard++<10){
+    const res = await mcp.callTool(SERVER, TOOL, { query: queryFor(b.id, first?null:cursor), variables: "{}" }, { cache:false });
+    const p = unwrap(res);
+    const page = first ? p?.boards?.[0]?.items_page : p?.next_items_page;
+    if(!page) throw {code:"tool_error", message:"Resposta inesperada do monday."};
+    if(first){
+      const col = pickPrimeiraCol(p.boards[0].columns);
+      b.primeiraCol = col ? col.id : null;
+    }
+    for(const it of page.items||[]){
+      const cvRaw = Object.fromEntries((it.column_values||[]).map(c=>[c.id,c]));
+      const cv = Object.fromEntries((it.column_values||[]).map(c=>[c.id,c.text||""]));
+      const primeira = b.primeiraCol ? earliestDate(colText(cvRaw[b.primeiraCol])) : null;
+      for(const s of it.subitems||[]){
+        const sv = Object.fromEntries((s.column_values||[]).map(c=>[c.id,c.text||""]));
+        out.push({
+          filial:b.filial, cliente:it.name, itemId:it.id, tipo:cv.color_mkw49eyq||"", statusDem:cv.status||"", group:it.group?.title||"",
+          modelo:s.name, frota:sv.text_mkw4929k||"", serie:sv.text_mm5agexd||"", sa:sv.text_mkw46zez||"",
+          plan:sv.status||"", manut:sv.color_mkw4rv2y||"", entrega:parseDate(sv.date_mm5axqas),
+          statusEq: b.statusEq ? (sv[b.statusEq]||"") : "", subId:s.id, boardId:b.id,
+          resp:cv.multiple_person_mm4wtd3p||"", pdi:sv.text_mkxkfeng||"", receb:parseDate(sv.date_mm5akh8m),
+          entregaCli:parseDate(sv[b.cli]), fab:sv[b.fab]||"", loc:sv[b.loc]||"", primeira,
+        });
+      }
+    }
+    cursor = page.cursor; first=false;
+  }
+  return out;
+}
+
+function errText(e, filial){
+  const code = e && e.code;
+  const map = {
+    bad_token:"O monday recusou o token. Clique em \"Trocar token\" e cole um token válido.",
+    no_token:"Informe o token do monday.",
+    selection_required:"Há mais de um conector monday.com. Escolha qual usar no aviso do Claude.",
+    not_in_manifest:"O acesso ao monday foi recusado para este painel. Recarregue a página e permita o acesso.",
+    blocked_by_policy:"A política da organização bloqueia essa consulta ao monday.",
+    server_unavailable:"O monday não respondeu a tempo. Tente atualizar em instantes.",
+    tool_error:"O monday recusou a consulta: " + (e?.message||""),
+  };
+  return map[code] || ("Falha ao consultar o monday" + (e?.message? ": "+e.message : "."));
+}
+
+let mcpRef = null;
+async function refresh(){
+  if(!mcpRef || state.loading) return;
+  state.loading = true; setStamp();
+  const results = await Promise.allSettled(BOARDS.map(b=>loadBoard(mcpRef,b)));
+  let retry = [];
+  results.forEach((r,i)=>{
+    const f = BOARDS[i].filial;
+    if(r.status==="fulfilled"){ state.rows[f]=r.value; delete state.errors[f]; }
+    else { state.errors[f]=r.reason; if(r.reason?.retryable) retry.push(BOARDS[i]); }
+  });
+  if(retry.length){
+    await new Promise(r=>setTimeout(r, (retry[0] && state.errors[retry[0].filial]?.retryAfterMs) || 1500+Math.random()*1500));
+    const again = await Promise.allSettled(retry.map(b=>loadBoard(mcpRef,b)));
+    again.forEach((r,i)=>{ const f=retry[i].filial; if(r.status==="fulfilled"){ state.rows[f]=r.value; delete state.errors[f]; } else state.errors[f]=r.reason; });
+  }
+  if(results.some(r=>r.status==="fulfilled")) state.updated = new Date();
+  state.loading = false;
+  render();
+}
+
+function setStamp(){
+  const dot = state.loading ? "busy" : (Object.keys(state.errors).length===BOARDS.length ? "err" : (state.updated ? "live":""));
+  const txt = state.loading ? "Consultando o monday…" : state.updated ? `Atualizado às ${state.updated.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}` : "Sem dados ainda";
+  $("stamp").innerHTML = `<span class="dot ${dot}"></span>${esc(txt)}`;
+  $("stamp").title = state.updated ? `Atualizado em ${state.updated.toLocaleString("pt-BR")} · atualiza sozinho a cada 5 minutos` : "";
+  $("refresh").disabled = state.loading || !mcpRef;
+  syncExportBtn();
+}
+
+function allRows(){ return FILIAIS.flatMap(f=>state.rows[f]||[]); }
+
+function renderFilters(){
+  const opts = ["Todas",...FILIAIS];
+  $("fFilial").innerHTML = opts.map(o=>`<button type="button" aria-pressed="${o===state.filial}" data-f="${esc(o)}">${esc(o)}</button>`).join("");
+  const tipos = [...new Set(allRows().map(r=>r.tipo).filter(Boolean))].sort();
+  if(state.tipo!=="Todos" && !tipos.includes(state.tipo)) tipos.push(state.tipo);
+  $("fTipo").innerHTML = ["Todos",...tipos].map(t=>`<option ${t===state.tipo?"selected":""} value="${esc(t)}">${esc(t)}</option>`).join("");
+  document.querySelectorAll("#fBase button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.b===state.base)));
+  renderChips();
+  if(!$("msPanel").hidden) renderMsList();
+}
+
+/* ---------- seleção múltipla de clientes ---------- */
+const ms = { act:-1, shown:[] };
+function clientOptions(){
+  // todos os clientes em carteira (todas as filiais), respeitando o tipo; com as filiais onde aparecem
+  const t0 = today(), m = new Map();
+  for(const r of visiveis(allRows().map(r=>({...r, sit:situacao(r,t0)})))){
+    if(state.tipo!=="Todos" && r.tipo!==state.tipo) continue;
+    if(!r.cliente) continue;
+    if(!m.has(r.cliente)) m.set(r.cliente,{name:r.cliente, fil:new Set(), n:0});
+    const o=m.get(r.cliente); o.fil.add(r.filial); o.n++;
+  }
+  return [...m.values()].sort((a,b)=>a.name.localeCompare(b.name,"pt"));
+}
+function renderChips(){
+  const sel=[...state.clientes], max=6;
+  $("msChips").innerHTML = sel.slice(0,max).map(c=>`<span class="chip" title="${esc(c)}"><span>${esc(c)}</span><button type="button" data-rm="${esc(c)}" aria-label="Remover ${esc(c)}">×</button></span>`).join("")
+    + (sel.length>max ? `<span class="chip more">+${sel.length-max}</span>` : "");
+  $("fCliente").placeholder = sel.length ? "Adicionar cliente…" : "Buscar e marcar clientes…";
+  $("fClienteClear").hidden = !sel.length && !$("fCliente").value;
+}
+function renderMsList(){
+  const q = norm($("fCliente").value);
+  const opts = clientOptions();
+  ms.shown = q ? opts.filter(o=>norm(o.name).includes(q)) : opts;
+  if(ms.act >= ms.shown.length) ms.act = ms.shown.length-1;
+  const hl = name => { if(!q) return esc(name); const i=norm(name).indexOf(q); return i<0?esc(name):esc(name.slice(0,i))+"<mark>"+esc(name.slice(i,i+q.length))+"</mark>"+esc(name.slice(i+q.length)); };
+  $("msList").innerHTML = ms.shown.length ? ms.shown.map((o,i)=>{
+    const on = state.clientes.has(o.name);
+    return `<li role="option" aria-selected="${on}" data-i="${i}" class="${i===ms.act?"act":""}"><input type="checkbox" tabindex="-1" ${on?"checked":""}><span class="nm">${hl(o.name)}</span><span class="ft">${[...o.fil].join(", ")} · ${o.n} eq.</span></li>`;
+  }).join("") : `<li class="empty">${FILIAIS.some(f=>state.rows[f]) ? "Nenhum cliente com esse nome." : "Aguardando dados do monday."}</li>`;
+  const selShown = ms.shown.filter(o=>state.clientes.has(o.name)).length;
+  $("msAll").textContent = q ? `Marcar os ${ms.shown.length} resultados` : "Marcar todos";
+  $("msAll").disabled = !ms.shown.length || selShown===ms.shown.length;
+  $("msNone").textContent = q ? "Desmarcar resultados" : "Desmarcar todos";
+  $("msNone").disabled = !selShown;
+  $("msCount").textContent = `${state.clientes.size} selecionado${state.clientes.size===1?"":"s"}`;
+  const a = $("msList").querySelector("li.act"); if(a) a.scrollIntoView({block:"nearest"});
+}
+function openMs(){ if(!$("msPanel").hidden) return; $("msPanel").hidden=false; $("fCliente").setAttribute("aria-expanded","true"); ms.act=-1; renderMsList(); }
+function closeMs(){ $("msPanel").hidden=true; $("fCliente").setAttribute("aria-expanded","false"); }
+function selectionChanged(){
+  // se os clientes marcados estão fora da filial escolhida, mostra todas as filiais
+  if(state.clientes.size && state.filial!=="Todas"){
+    const fora = allRows().some(r=>state.clientes.has(r.cliente) && r.filial!==state.filial);
+    if(fora) state.filial="Todas";
+  }
+  save(); render();
+}
+function toggleCli(name){ state.clientes.has(name) ? state.clientes.delete(name) : state.clientes.add(name); selectionChanged(); renderMsList(); }
+
+function render(){
+  setStamp(); renderFilters();
+  const t0 = today();
+  const rows = visiveis(allRows().map(withBase).map(r=>({...r, sit:situacao(r,t0)})));
+  const byTipo = rows.filter(r=>(state.tipo==="Todos" || r.tipo===state.tipo) && matchCli(r));
+  const sel = byTipo.filter(r=>state.filial==="Todas" || r.filial===state.filial);
+  if(state.clientes.size){
+    const nc = new Set(sel.map(r=>r.filial+"|"+r.itemId)).size;
+    const outras = state.filial!=="Todas" ? [...new Set(byTipo.filter(r=>r.filial!==state.filial).map(r=>r.filial))] : [];
+    $("fClienteInfo").textContent = nc ? `${state.clientes.size} ${state.clientes.size===1?"cliente":"clientes"} · ${nc} ${nc===1?"demanda":"demandas"} · ${sel.length} equip.` + (outras.length?` · também em ${outras.join(", ")}`:"")
+      : (outras.length ? `Nenhum em ${state.filial}. Encontrado em ${outras.join(", ")}.` : "Nenhum equipamento em carteira para os clientes marcados.");
+  } else $("fClienteInfo").textContent = "";
+  const cnt = (arr, s) => arr.filter(r=>r.sit===s).length;
+
+  // banners
+  const errs = Object.entries(state.errors);
+  if(errs.length===BOARDS.length && !state.updated){
+    $("banners").innerHTML = `<div class="banner"><b>Não consegui ler o monday.</b> ${esc(errText(errs[0][1]))}</div>`;
+  } else {
+    $("banners").innerHTML = errs.map(([f,e])=>`<div class="banner"><b>${esc(f)}:</b> ${esc(errText(e))} ${state.rows[f]?"Mostrando a última leitura.":"Essa filial está fora dos números."}</div>`).join("");
+  }
+  const hasData = FILIAIS.some(f=>state.rows[f]);
+
+  // KPIs
+  const d30 = new Date(t0.getTime()+30*DAY);
+  const k = {
+    carteira: sel.filter(r=>PEND.includes(r.sit)).length,
+    atras: cnt(sel,"Atrasado"),
+    p7: cnt(sel,"Próximos 7 dias"),
+    p30: sel.filter(r=>(r.sit==="Próximos 7 dias"||r.sit==="No prazo") && r.entrega<=d30).length,
+    pronto: cnt(sel,"Pronto p/ entrega"),
+  };
+  const v = n => hasData ? n : "–";
+  $("kpis").innerHTML = [
+    ["Em carteira", k.carteira, "var(--ink)", "Pendentes de entrega"],
+    ["Atrasados", k.atras, "var(--late)", state.base==="cliente" ? "Data do cliente vencida" : "Data da manutenção vencida"],
+    ["Próximos 7 dias", k.p7, "var(--soon)", `Até ${fmtD(new Date(t0.getTime()+7*DAY))}`],
+    ["Próximos 30 dias", k.p30, "var(--accent)", `Até ${fmtD(d30)}`],
+    ["Prontos p/ entrega", k.pronto, "var(--ready)", "Concluídos, aguardando saída"],
+  ].map(([l,n,c,h])=>`<div class="kpi" style="--c:${c}"><span class="l">${l}</span><span class="v">${v(n)}</span><span class="h">${h}</span></div>`).join("");
+
+  // Mensal (ignora filtro de filial)
+  const m0 = new Date(t0.getFullYear(), t0.getMonth(), 1);
+  const months = Array.from({length:6},(_,i)=>new Date(m0.getFullYear(), m0.getMonth()+i, 1));
+  const endOf = d => new Date(d.getFullYear(), d.getMonth()+1, 0);
+  const fut = r => r.sit==="Próximos 7 dias"||r.sit==="No prazo";
+  const lines = [
+    {lbl:"Atrasados", cls:"late", f:r=>r.sit==="Atrasado"},
+    ...months.map((m,i)=>({lbl:`${MES[m.getMonth()]}/${String(m.getFullYear()).slice(2)}`, cls:i===0?"cur":"", f:r=>fut(r)&&r.entrega>=m&&r.entrega<=endOf(m)})),
+    {lbl:"Depois", f:r=>fut(r)&&r.entrega>endOf(months[5])},
+    {lbl:"Sem previsão", f:r=>r.sit==="Sem previsão"},
+  ];
+  const maxTot = Math.max(1,...lines.map(L=>byTipo.filter(L.f).length));
+  const cell = n => `<td class="${n?"":"z"}">${hasData?n:"–"}</td>`;
+  let html = `<thead><tr><th>Mês previsto</th>${FILIAIS.map(f=>`<th>${f}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+  const colTot = FILIAIS.map(()=>0); let grand=0;
+  for(const L of lines){
+    const ns = FILIAIS.map(f=>byTipo.filter(r=>r.filial===f && L.f(r)).length);
+    const tot = ns.reduce((a,b)=>a+b,0); ns.forEach((n,i)=>colTot[i]+=n); grand+=tot;
+    html += `<tr class="${L.cls||""}"><td>${L.lbl}</td>${ns.map(cell).join("")}<td><div class="cell-bar"><span class="mini" style="width:${Math.round(tot/maxTot*60)}px;${L.cls==="late"?"background:var(--late)":L.lbl==="Sem previsão"?"background:var(--none)":""}"></span><b>${hasData?tot:"–"}</b></div></td></tr>`;
+  }
+  html += `<tr class="tot"><td>Total em carteira</td>${colTot.map(n=>`<td>${hasData?n:"–"}</td>`).join("")}<td>${hasData?grand:"–"}</td></tr></tbody>`;
+  $("tMensal").innerHTML = html;
+
+  // Semanas
+  const dow = (t0.getDay()+6)%7; const w0 = new Date(t0.getTime()-dow*DAY);
+  const weeks = Array.from({length:8},(_,i)=>{ const s=new Date(w0.getTime()+i*7*DAY), e=new Date(s.getTime()+6*DAY);
+    return {s,e,n: sel.filter(r=>fut(r)&&r.entrega>=s&&r.entrega<=e).length}; });
+  const wmax = Math.max(1,...weeks.map(w=>w.n));
+  $("weeks").innerHTML = weeks.map((w,i)=>`<div class="wk ${i===0?"now":""}" title="${fmtD(w.s)} a ${fmtD(w.e)}: ${w.n} equip."><span class="c">${hasData?w.n:""}</span><span class="b" style="height:${hasData?Math.max(2,w.n/wmax*120):2}px"></span></div>`).join("");
+  $("wkLbl").innerHTML = weeks.map((w,i)=>`<div>${i===0?"Esta sem.":"Sem. "+(i+1)}<br>${fmtD(w.s)}</div>`).join("");
+  $("wkTotal").textContent = hasData ? `${weeks.reduce((a,w)=>a+w.n,0)} equip. no período` : "";
+
+  // Status manutenção
+  const cart = sel.filter(r=>PEND.includes(r.sit));
+  const mmap = new Map();
+  for(const r of cart){ const m=manutLabel(r.manut); if(!mmap.has(m)) mmap.set(m,{m,n:0,a:0}); const o=mmap.get(m); o.n++; if(r.sit==="Atrasado") o.a++; }
+  const mrows = [...mmap.values()].sort((x,y)=> (x.m==="(sem status)")-(y.m==="(sem status)") || y.n-x.n || x.m.localeCompare(y.m,"pt"));
+  if(!mrows.length) mrows.push({m:hasData?"Nenhum equipamento em carteira":"Aguardando dados do monday",n:0,a:0});
+  const mmax = Math.max(1,...mrows.map(x=>x.n));
+  $("tManut").innerHTML = `<thead><tr><th>Status da manutenção</th><th>Equip.</th><th>Atrasados</th><th>% carteira</th></tr></thead><tbody>` +
+    mrows.map(x=>`<tr><td>${esc(x.m)}</td><td><div class="cell-bar"><span class="mini" style="width:${Math.round(x.n/mmax*60)}px"></span>${hasData?x.n:"–"}</div></td><td class="${x.a?"":"z"}" style="${x.a?"color:var(--late);font-weight:600":""}">${hasData?x.a:"–"}</td><td class="z">${cart.length?Math.round(x.n/cart.length*100)+"%":"–"}</td></tr>`).join("") +
+    `<tr class="tot"><td>Total</td><td>${hasData?cart.length:"–"}</td><td>${hasData?cnt(cart,"Atrasado"):"–"}</td><td>${cart.length?"100%":"–"}</td></tr></tbody>`;
+
+  // Situação
+  const sitN = SIT.map(s=>({...s,n:cnt(sel,s.k)})); const sitT = sitN.reduce((a,s)=>a+s.n,0);
+  $("sitStack").innerHTML = sitT ? sitN.map(s=>`<span style="width:${s.n/sitT*100}%;background:${s.c}" title="${s.k}: ${s.n}"></span>`).join("") : "";
+  $("sitList").innerHTML = sitN.map(s=>`<div class="sit-row"><span><span class="legend"><i style="background:${s.c}"></i></span>${s.k}</span><span class="track"><span style="width:${sitT?s.n/sitT*100:0}%;background:${s.c}"></span></span><span class="n">${hasData?s.n:"–"}</span><span class="p">${sitT?Math.round(s.n/sitT*100)+"%":""}</span></div>`).join("");
+  $("sitTotal").textContent = hasData ? `${sitT} equipamentos` : "";
+
+  // Atrasados
+  const late = sel.filter(r=>r.sit==="Atrasado").sort((a,b)=>a.entrega-b.entrega);
+  $("tLate").innerHTML = late.length ? `<thead><tr><th>Cliente</th><th style="text-align:left">Equipamento</th><th style="text-align:left">Frota / Série</th><th style="text-align:left">Status manutenção</th><th>${state.base==="cliente"?"Entrega cliente":"Entrega manutenção"}</th><th>Dias atraso</th></tr></thead><tbody>` +
+    late.map(r=>`<tr><td class="wrap-t"><a href="https://carmak-unit.monday.com/boards/${r.boardId}/pulses/${r.itemId}" target="_blank" rel="noopener" class="cli-name">${esc(r.cliente)}</a><div class="cli-sub">${esc(r.filial)} · ${esc(r.tipo||"—")}</div></td><td style="text-align:left" class="wrap-t">${esc(r.modelo)}</td><td style="text-align:left">${esc([r.frota,r.serie].filter(Boolean).join(" · ")||"—")}</td><td style="text-align:left">${esc(r.manut?manutLabel(r.manut):"—")}</td><td>${fmtDY(r.entrega)}</td><td style="color:var(--late);font-weight:600">${Math.round((t0-r.entrega)/DAY)}</td></tr>`).join("") + `</tbody>`
+    : `<tbody><tr><td class="empty">${hasData?"Nenhum equipamento atrasado neste filtro.":"Aguardando dados do monday."}</td></tr></tbody>`;
+
+  // Por cliente
+  const map = new Map();
+  for(const r of sel){ const key=r.filial+"|"+r.itemId; if(!map.has(key)) map.set(key,{...r, list:[]}); map.get(key).list.push(r); }
+  const clis = [...map.values()].map(c=>{
+    const L=c.list, pend=L.filter(r=>PEND.includes(r.sit));
+    const datas = pend.map(r=>r.entrega).filter(Boolean);
+    const all = L.map(r=>r.entrega).filter(Boolean);
+    return {c, eq:L.length, pend:pend.length, atr:cnt(L,"Atrasado"), pr:cnt(L,"Pronto p/ entrega"), ent:cnt(L,"Entregue"),
+      prox: usaPrimeiraMonday(c.boardId) ? c.primeira : (datas.length? new Date(Math.min(...datas)) : null), ult: all.length? new Date(Math.max(...all)) : null};
+  }).sort((a,b)=> b.atr-a.atr || (a.prox?a.prox:Infinity)-(b.prox?b.prox:Infinity) || b.pend-a.pend);
+  $("tCli").innerHTML = clis.length ? `<thead><tr><th>Cliente / demanda</th><th style="text-align:left">Status da demanda</th><th>Equip.</th><th>Pendentes</th><th>Atrasados</th><th>Prontos</th><th>Entregues</th><th>Primeira entrega</th><th>Última prevista</th><th>% concluído</th></tr></thead><tbody>` +
+    clis.map(x=>{ const p=x.eq?(x.pr+x.ent)/x.eq:0; const k=x.c.filial+"|"+x.c.itemId, open=fichaAberta(k); return `<tr class="cli-row${open?" open":""}"><td class="wrap-t"><div class="cli-head"><button type="button" class="caret" data-ficha="${esc(k)}" aria-expanded="${open}" aria-label="${open?"Fechar":"Ver"} máquinas de ${esc(x.c.cliente)}">▸</button><div><a href="https://carmak-unit.monday.com/boards/${x.c.boardId}/pulses/${x.c.itemId}" target="_blank" rel="noopener" class="cli-name">${esc(x.c.cliente)}</a><div class="cli-sub">${esc(x.c.filial)} · ${esc(x.c.tipo||"—")}</div></div></div></td><td style="text-align:left">${esc(x.c.statusDem||"—")}</td><td>${x.eq}</td><td class="${x.pend?"":"z"}">${x.pend}</td><td class="${x.atr?"":"z"}" style="${x.atr?"color:var(--late);font-weight:600":""}">${x.atr}</td><td class="${x.pr?"":"z"}">${x.pr}</td><td class="${x.ent?"":"z"}">${x.ent}</td><td>${x.prox&&x.prox<t0&&x.pend?`<span class="pill p-late">${fmtDY(x.prox)}</span>`:fmtDY(x.prox)}</td><td>${fmtDY(x.ult)}</td><td><div class="pct"><span class="t"><span style="width:${p*100}%"></span></span>${Math.round(p*100)}%</div></td></tr>` + (open ? fichaHtml(x.c.list, t0) : ""); }).join("") + `</tbody>`
+    : `<tbody><tr><td class="empty">${hasData?"Nenhuma demanda neste filtro.":"Aguardando dados do monday."}</td></tr></tbody>`;
+}
+
+/* ---------- Ficha do cliente: máquinas e datas ---------- */
+// abre ao clicar; com clientes marcados na busca, já abre sozinha (até o gestor fechar)
+const fichas = { open:new Set(), closed:new Set() };
+function fichaAberta(k){ return fichas.open.has(k) || (state.clientes.size>0 && !fichas.closed.has(k)); }
+function fichaHtml(list, t0){
+  const pill = s => { const o=SIT.find(x=>x.k===s); return o?`<span class="pill ${o.pill}">${esc(s)}</span>`:esc(s); };
+  // pendentes primeiro (por data), depois prontos, depois entregues
+  const grp = s => s==="Entregue" ? 2 : s==="Pronto p/ entrega" ? 1 : 0;
+  const L = list.slice().sort((a,b)=> grp(a.sit)-grp(b.sit) || (a.entrega||Infinity)-(b.entrega||Infinity) || a.modelo.localeCompare(b.modelo,"pt"));
+  const bCli = state.base==="cliente";
+  const d = (v, destaque) => v ? `<span class="${destaque?"dt-main":""}">${fmtDY(v)}</span>` : `<span class="z">—</span>`;
+  return `<tr class="ficha"><td colspan="10"><div class="ficha-box">
+    <div class="ficha-sum"><b>${list.length} ${list.length===1?"equipamento":"equipamentos"}</b></div>
+    <div class="scroll"><table class="ficha-t">
+      <thead><tr><th>Equipamento</th><th>Frota</th><th>Série</th><th>Status manutenção</th><th>Recebimento</th><th>Entrega manutenção</th><th>Entrega cliente</th><th>Situação</th></tr></thead>
+      <tbody>${L.map(r=>`<tr><td>${esc(r.modelo)}</td><td>${esc(r.frota||"—")}</td><td>${esc(r.serie||"—")}</td><td>${esc(r.manut?manutLabel(r.manut):"—")}</td><td>${d(r.receb,false)}</td><td>${d(r.entregaManut,!bCli)}</td><td>${d(r.entregaCli,bCli)}</td><td>${pill(r.sit)}</td></tr>`).join("")}</tbody>
+    </table></div></div></td></tr>`;
+}
+$("tCli").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-ficha]"); if(!b) return;
+  const k = b.dataset.ficha;
+  if(fichaAberta(k)){ fichas.open.delete(k); fichas.closed.add(k); } else { fichas.closed.delete(k); fichas.open.add(k); }
+  render();
+});
+
+$("fBase").addEventListener("click", e=>{ const b=e.target.closest("button[data-b]"); if(!b || b.dataset.b===state.base) return; state.base=b.dataset.b; save(); render(); });
+$("fFilial").addEventListener("click", e=>{ const b=e.target.closest("button[data-f]"); if(!b) return; state.filial=b.dataset.f; save(); render(); });
+$("fTipo").addEventListener("change", e=>{ state.tipo=e.target.value; save(); render(); });
+$("msField").addEventListener("click", e=>{
+  const rm = e.target.closest("[data-rm]");
+  if(rm){ state.clientes.delete(rm.dataset.rm); selectionChanged(); if(!$("msPanel").hidden) renderMsList(); return; }
+  if(e.target.closest("#fClienteClear")) return;
+  $("fCliente").focus(); openMs();
+});
+$("fCliente").addEventListener("focus", openMs);
+$("fCliente").addEventListener("input", ()=>{ ms.act = $("fCliente").value ? 0 : -1; openMs(); renderMsList(); renderChips(); });
+$("fCliente").addEventListener("keydown", e=>{
+  if(e.key==="ArrowDown"){ e.preventDefault(); openMs(); ms.act=Math.min(ms.act+1, ms.shown.length-1); renderMsList(); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); ms.act=Math.max(ms.act-1, 0); renderMsList(); }
+  else if(e.key==="Enter"){ e.preventDefault(); const o=ms.shown[ms.act<0?0:ms.act]; if(o) toggleCli(o.name); }
+  else if(e.key==="Escape"){ closeMs(); }
+  else if(e.key==="Backspace" && !$("fCliente").value && state.clientes.size){ const last=[...state.clientes].pop(); state.clientes.delete(last); selectionChanged(); if(!$("msPanel").hidden) renderMsList(); }
+});
+$("msList").addEventListener("mousedown", e=>e.preventDefault());
+$("msList").addEventListener("click", e=>{ const li=e.target.closest("li[data-i]"); if(!li) return; ms.act=+li.dataset.i; toggleCli(ms.shown[ms.act].name); });
+$("msAll").addEventListener("click", ()=>{ ms.shown.forEach(o=>state.clientes.add(o.name)); selectionChanged(); renderMsList(); });
+$("msNone").addEventListener("click", ()=>{ ms.shown.forEach(o=>state.clientes.delete(o.name)); selectionChanged(); renderMsList(); });
+$("fClienteClear").addEventListener("click", e=>{ e.stopPropagation(); state.clientes.clear(); $("fCliente").value=""; selectionChanged(); if(!$("msPanel").hidden) renderMsList(); $("fCliente").focus(); });
+document.addEventListener("mousedown", e=>{ if(!$("ms").contains(e.target)) closeMs(); });
+$("ms").addEventListener("focusout", e=>{ if(!$("ms").contains(e.relatedTarget)) setTimeout(()=>{ if(!$("ms").contains(document.activeElement)) closeMs(); },0); });
+$("refresh").addEventListener("click", ()=>refresh());
+function save(){ try{ localStorage.setItem("pe-filters", JSON.stringify({filial:state.filial,tipo:state.tipo,clientes:[...state.clientes],base:state.base})); }catch(e){} }
+
+/* ---------- Exportar Excel (todas as entregas, sem filtros) ---------- */
+let downloadsRef = null;
+function toast(msg){
+  let t=document.querySelector(".toast"); if(!t){ t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); document.body.appendChild(t); }
+  t.textContent=msg; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(()=>{t.hidden=true;},4500);
+}
+function syncExportBtn(){
+  const b=$("exportXlsx");
+  b.hidden = !downloadsRef || typeof XLSX==="undefined";
+  b.disabled = state.loading || !FILIAIS.some(f=>state.rows[f]);
+  const c=$("exportCrono");
+  c.hidden = b.hidden; c.disabled = b.disabled;
+  c.textContent = state.clientes.size ? `Exportar cronograma (${state.clientes.size})` : "Exportar cronograma";
+}
+
+/* ---------- Exportar cronograma dos clientes marcados ---------- */
+const XS = {
+  // estilos (xlsx-js-style)
+  title:{font:{bold:true,sz:16,color:{rgb:"003938"}}},
+  sub:{font:{sz:10,color:{rgb:"4A5A54"}}},
+  planta:{font:{bold:true,sz:12,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"003938"}},alignment:{vertical:"center"}},
+  plantaInfo:{font:{sz:10,color:{rgb:"CFE29A"}},fill:{fgColor:{rgb:"003938"}},alignment:{vertical:"center"}},
+  head:{font:{bold:true,sz:10,color:{rgb:"003938"}},fill:{fgColor:{rgb:"E6EFD0"}},border:{bottom:{style:"medium",color:{rgb:"003938"}}},alignment:{vertical:"center",wrapText:true}},
+  headWeek:{font:{bold:true,sz:9,color:{rgb:"003938"}},fill:{fgColor:{rgb:"E6EFD0"}},border:{bottom:{style:"medium",color:{rgb:"003938"}}},alignment:{horizontal:"center",vertical:"center",wrapText:true}},
+  headToday:{font:{bold:true,sz:9,color:{rgb:"003938"}},fill:{fgColor:{rgb:"A9CC44"}},border:{bottom:{style:"medium",color:{rgb:"003938"}}},alignment:{horizontal:"center",vertical:"center",wrapText:true}},
+  cell:{font:{sz:10},border:{bottom:{style:"thin",color:{rgb:"D6DDD6"}}},alignment:{vertical:"center"}},
+  date:{font:{sz:10},border:{bottom:{style:"thin",color:{rgb:"D6DDD6"}}},alignment:{horizontal:"center",vertical:"center"},numFmt:"dd/mm/yyyy"},
+  week:{border:{bottom:{style:"thin",color:{rgb:"D6DDD6"}},left:{style:"hair",color:{rgb:"E7ECE7"}}}},
+  todayCol:{fill:{fgColor:{rgb:"F1F7DC"}},border:{bottom:{style:"thin",color:{rgb:"D6DDD6"}}}},
+  R:{font:{bold:true,sz:9,color:{rgb:"003938"}},fill:{fgColor:{rgb:"D6DDD6"}},alignment:{horizontal:"center",vertical:"center"}},
+  M:{font:{bold:true,sz:9,color:{rgb:"003938"}},fill:{fgColor:{rgb:"A9CC44"}},alignment:{horizontal:"center",vertical:"center"}},
+  C:{font:{bold:true,sz:9,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"39653B"}},alignment:{horizontal:"center",vertical:"center"}},
+  MC:{font:{bold:true,sz:9,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"003938"}},alignment:{horizontal:"center",vertical:"center"}},
+  OK:{font:{bold:true,sz:9,color:{rgb:"4A5A54"}},fill:{fgColor:{rgb:"EEF1EE"}},alignment:{horizontal:"center",vertical:"center"}},
+  sit:{
+    "Atrasado":{font:{bold:true,sz:10,color:{rgb:"EB0A1E"}}}, "Próximos 7 dias":{font:{bold:true,sz:10,color:{rgb:"D98A1C"}}},
+    "No prazo":{font:{sz:10,color:{rgb:"39653B"}}}, "Sem previsão":{font:{sz:10,color:{rgb:"7D8D86"}}},
+    "Pronto p/ entrega":{font:{bold:true,sz:10,color:{rgb:"7FA12A"}}}, "Entregue":{font:{sz:10,color:{rgb:"4A5A54"}}}
+  },
+};
+const mondayOf = d => { const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; };
+function cronoRows(){
+  const t0=today();
+  const rows = visiveis(allRows().map(withBase).map(r=>({...r,sit:situacao(r,t0)}))).filter(r=>state.clientes.has(r.cliente));
+  const grupos = new Map();
+  for(const r of rows){ const k=r.filial+"|"+r.itemId; if(!grupos.has(k)) grupos.set(k,{nome:r.cliente, filial:r.filial, tipo:r.tipo, statusDem:r.statusDem, list:[]}); grupos.get(k).list.push(r); }
+  // documento para o cliente: ordem pela data de entrega ao cliente; entregues no fim
+  const grp = r => statusCliente(r)==="Entregue" ? 1 : 0;
+  const out=[...grupos.values()].sort((a,b)=>a.nome.localeCompare(b.nome,"pt"));
+  out.forEach(g=>g.list.sort((a,b)=> grp(a)-grp(b) || (a.entregaCli||Infinity)-(b.entregaCli||Infinity) || a.modelo.localeCompare(b.modelo,"pt")));
+  return out;
+}
+// status que o cliente vê (sem termos internos de manutenção/atraso)
+function statusCliente(r){
+  if(r.sit==="Entregue") return "Entregue";
+  if(r.sit==="Pronto p/ entrega") return "Pronto para entrega";
+  return r.entregaCli ? "Previsto" : "A definir";
+}
+const XS_CLI = {
+  "Entregue":{font:{sz:10,color:{rgb:"4A5A54"}}},
+  "Pronto para entrega":{font:{bold:true,sz:10,color:{rgb:"39653B"}}},
+  "Previsto":{font:{sz:10,color:{rgb:"003938"}}},
+  "A definir":{font:{italic:true,sz:10,color:{rgb:"7D8D86"}}},
+};
+function cronoSheet(plantas){
+  const t0=today(), NF=5; // colunas fixas antes das semanas
+  const ds=[t0]; plantas.forEach(p=>p.list.forEach(r=>r.entregaCli&&ds.push(r.entregaCli)));
+  let ini=mondayOf(new Date(Math.min(...ds))), fim=mondayOf(new Date(Math.max(...ds)));
+  const MAXW=52; if((fim-ini)/(7*DAY) >= MAXW) ini=new Date(fim.getTime()-(MAXW-1)*7*DAY);
+  const weeks=[]; for(let w=new Date(ini); w<=fim; w=new Date(w.getTime()+7*DAY)) weeks.push(w);
+  const hoje=mondayOf(t0).getTime();
+  const wIdx = d => { if(!d) return -1; const i=Math.round((mondayOf(d)-ini)/(7*DAY)); return i>=0&&i<weeks.length?i:-1; };
+  const ws={}, merges=[]; let R=0; const lastCol=NF+weeks.length-1;
+  const put=(r,c,v,s)=>{ const a=XLSX.utils.encode_cell({r,c}); const cell = v instanceof Date ? {t:"n",v:dateSerial(v),z:"dd/mm/yyyy"} : {t:"s",v:v==null?"":String(v)}; if(s) cell.s=s; ws[a]=cell; };
+  const fill=(r,s)=>{ for(let c=0;c<=lastCol;c++){ const a=XLSX.utils.encode_cell({r,c}); if(!ws[a]) put(r,c,"",s); } };
+  const nomes=[...new Set(plantas.map(p=>p.nome))];
+  put(R,0,"Cronograma de Entregas · Carmak",XS.title); merges.push({s:{r:R,c:0},e:{r:R,c:NF-1}}); R++;
+  put(R,0,`${nomes.length>3?nomes.length+" plantas":nomes.join(" · ")} · atualizado em ${new Date().toLocaleDateString("pt-BR")}`,XS.sub); merges.push({s:{r:R,c:0},e:{r:R,c:Math.max(NF-1,lastCol)}}); R++;
+  put(R,0,"Legenda:",XS.sub); put(R,1,"●",XS.C); put(R,2,"Entrega prevista",XS.sub); put(R,3,"✓",XS.OK); put(R,4,"Entregue",XS.sub);
+  if(lastCol>=NF){ put(R,NF,"",XS.headToday); put(R,NF+1,"Semana atual",XS.sub); if(lastCol>NF+1) merges.push({s:{r:R,c:NF+1},e:{r:R,c:lastCol}}); }
+  R+=2;
+  const H=["Equipamento","Frota","Série","Entrega prevista","Status"];
+  for(const p of plantas){
+    const ent=p.list.filter(r=>statusCliente(r)==="Entregue").length;
+    put(R,0,p.nome,XS.planta); merges.push({s:{r:R,c:0},e:{r:R,c:2}});
+    put(R,3,`${p.list.length} ${p.list.length===1?"equipamento":"equipamentos"}${ent?` · ${ent} ${ent===1?"entregue":"entregues"}`:""}`,XS.plantaInfo); merges.push({s:{r:R,c:3},e:{r:R,c:Math.max(4,lastCol)}});
+    fill(R,XS.planta); R++;
+    H.forEach((h,c)=>put(R,c,h,XS.head));
+    weeks.forEach((w,i)=>put(R,NF+i,`${String(w.getDate()).padStart(2,"0")}/${String(w.getMonth()+1).padStart(2,"0")}`, w.getTime()===hoje?XS.headToday:XS.headWeek));
+    R++;
+    for(const r of p.list){
+      const st=statusCliente(r);
+      put(R,0,r.modelo,XS.cell); put(R,1,r.frota||"—",XS.cell); put(R,2,r.serie||"—",XS.cell);
+      put(R,3,r.entregaCli||"A definir",r.entregaCli?XS.date:{...XS.date,...XS_CLI["A definir"]});
+      put(R,4,st,{...XS.cell,...XS_CLI[st]});
+      const wi=wIdx(r.entregaCli);
+      weeks.forEach((w,i)=>{
+        if(i===wi) put(R,NF+i, st==="Entregue"?"✓":"●", st==="Entregue"?XS.OK:XS.C);
+        else put(R,NF+i,"", w.getTime()===hoje ? XS.todayCol : XS.week);
+      });
+      R++;
+    }
+    R++;
+  }
+  ws["!ref"]=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:R,c:Math.max(lastCol,NF)}});
+  ws["!merges"]=merges;
+  ws["!cols"]=[{wch:28},{wch:18},{wch:18},{wch:15},{wch:18},...weeks.map(()=>({wch:6}))];
+  return ws;
+}
+function dateSerial(d){ return (Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - Date.UTC(1899,11,30)) / DAY; }
+function safeSheetName(s, used){
+  let n=String(s).replace(/[\[\]\:\*\?\/\\]/g," ").trim().slice(0,31) || "Planta"; let i=2, base=n;
+  while(used.has(n.toLowerCase())){ const suf=` (${i++})`; n=base.slice(0,31-suf.length)+suf; }
+  used.add(n.toLowerCase()); return n;
+}
+function buildCronograma(){
+  const plantas = cronoRows();
+  const wb = XLSX.utils.book_new(), used=new Set();
+  XLSX.utils.book_append_sheet(wb, cronoSheet(plantas), safeSheetName("Cronograma", used));
+  if(plantas.length>1) for(const p of plantas) XLSX.utils.book_append_sheet(wb, cronoSheet([p]), safeSheetName(p.nome, used));
+  return {buf:XLSX.write(wb,{bookType:"xlsx",type:"array"}), plantas};
+}
+async function exportCrono(){
+  if(!downloadsRef) return;
+  if(!state.clientes.size){
+    toast("Marque os clientes no campo Cliente e clique de novo em Exportar cronograma.");
+    $("fCliente").focus(); return;
+  }
+  const btn=$("exportCrono"); btn.disabled=true;
+  try{
+    const {buf,plantas}=buildCronograma();
+    if(!plantas.length){ toast("Os clientes marcados não têm equipamentos em carteira."); return; }
+    const h=new Date(), dt=`${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,"0")}-${String(h.getDate()).padStart(2,"0")}`;
+    const nomes=[...new Set(plantas.map(p=>p.nome))];
+    const alvo = nomes.length===1 ? nomes[0] : `${nomes.length} plantas`;
+    await downloadsRef.save({filename:`Cronograma ${alvo.replace(/[\\\/:*?"<>|]/g," ").slice(0,60)} ${dt}.xlsx`, data:new Blob([buf])});
+    toast(`Cronograma salvo: ${plantas.length} ${plantas.length===1?"planta":"plantas"}.`);
+  }catch(e){
+    const c=e&&e.code;
+    if(c==="declined") {}
+    else if(c==="rate_limited") toast("Já existe um pedido de download aberto. Conclua ou feche e tente de novo.");
+    else if(["unavailable","not_granted","capability_disabled","capability_removed"].includes(c)){ downloadsRef=null; toast("Download não disponível nesta visualização."); }
+    else toast("Não consegui gerar o cronograma" + (e&&e.message? ": "+e.message : "."));
+  }finally{ syncExportBtn(); }
+}
+function buildWorkbook(){
+  const t0=today(), ORD={"Atrasado":0,"Próximos 7 dias":1,"No prazo":2,"Sem previsão":3,"Pronto p/ entrega":4};
+  const rows=visiveis(allRows().map(withBase).map(r=>({...r,sit:situacao(r,t0)})))
+    .sort((a,b)=>FILIAIS.indexOf(a.filial)-FILIAIS.indexOf(b.filial) || ORD[a.sit]-ORD[b.sit] || (a.entrega||Infinity)-(b.entrega||Infinity) || a.cliente.localeCompare(b.cliente,"pt"));
+  const d = v => v || null;
+  const dias = r => (r.entrega && PEND.includes(r.sit) && r.sit!=="Sem previsão") ? Math.round((r.entrega-t0)/DAY) : null;
+  const link = r => `https://carmak-unit.monday.com/boards/${r.boardId}/pulses/${r.itemId}`;
+
+  // Aba 1: equipamentos
+  const H1=["Filial","Cliente / Demanda","Tipo","Grupo monday","Status da demanda","Responsáveis","Modelo","Frota","Série","SA","PDI",
+    "Status planejamento","Status manutenção","Recebimento equip.","Entrega manutenção","Entrega cliente","Fabricação","Localização","Status equipamento","Situação","Dias p/ entrega","Link monday"];
+  const A1=[H1, ...rows.map(r=>[r.filial,r.cliente,r.tipo,r.group,r.statusDem,r.resp,r.modelo,r.frota,r.serie,r.sa,r.pdi,
+    r.plan,r.manut?manutLabel(r.manut):"",d(r.receb),d(r.entregaManut),d(r.entregaCli),r.fab,r.loc,r.statusEq,r.sit,dias(r),link(r)])];
+  const ws1=XLSX.utils.aoa_to_sheet(A1,{dateNF:"dd/mm/yyyy"});
+  for(let i=1;i<A1.length;i++){ const c=XLSX.utils.encode_cell({r:i,c:21}); if(ws1[c]) ws1[c].l={Target:ws1[c].v}; }
+  ws1["!cols"]=[8,30,15,20,26,28,26,8,16,12,10,20,24,13,13,13,12,12,18,17,10,20].map(w=>({wch:w}));
+  ws1["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:A1.length-1,c:H1.length-1}})};
+
+  // Aba 2: por cliente
+  const map=new Map();
+  for(const r of rows){ const k=r.filial+"|"+r.itemId; if(!map.has(k)) map.set(k,{r,list:[]}); map.get(k).list.push(r); }
+  const H2=["Filial","Cliente / Demanda","Tipo","Status da demanda","Equip.","Pendentes","Atrasados","Prontos","Entregues","Primeira entrega","Última entrega prevista","% concluído","Link monday"];
+  const A2=[H2, ...[...map.values()].map(({r,list})=>{
+    const pend=list.filter(x=>PEND.includes(x.sit)); const pr=list.filter(x=>x.sit==="Pronto p/ entrega").length; const ent=list.filter(x=>x.sit==="Entregue").length;
+    const prox=pend.map(x=>x.entrega).filter(Boolean), all=list.map(x=>x.entrega).filter(Boolean);
+    return [r.filial,r.cliente,r.tipo,r.statusDem,list.length,pend.length,list.filter(x=>x.sit==="Atrasado").length,pr,ent,
+      usaPrimeiraMonday(r.boardId) ? r.primeira : (prox.length?new Date(Math.min(...prox)):null), all.length?new Date(Math.max(...all)):null, list.length?(pr+ent)/list.length:0, link(r)];
+  }).sort((a,b)=>b[6]-a[6] || (a[9]||Infinity)-(b[9]||Infinity))];
+  const ws2=XLSX.utils.aoa_to_sheet(A2,{dateNF:"dd/mm/yyyy"});
+  for(let i=1;i<A2.length;i++){ const p=XLSX.utils.encode_cell({r:i,c:11}); if(ws2[p]) ws2[p].z="0%"; const c=XLSX.utils.encode_cell({r:i,c:12}); if(ws2[c]) ws2[c].l={Target:ws2[c].v}; }
+  ws2["!cols"]=[8,32,15,26,7,10,10,9,10,15,20,11,20].map(w=>({wch:w}));
+  ws2["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:A2.length-1,c:H2.length-1}})};
+
+  // Aba 3: resumo
+  const cnt=(f,s)=>rows.filter(r=>(f==="Total"||r.filial===f)&&(s===null?PEND.includes(r.sit):r.sit===s)).length;
+  const cols=[...FILIAIS,"Total"];
+  const A3=[["Previsão de Entregas: Oficinas Carmak"],[`Gerado em ${new Date().toLocaleString("pt-BR")} · fonte: quadros de demandas do monday`],[`Situação e dias calculados pela ${BASE_LBL[state.base]}`],[],
+    ["Situação",...cols],
+    ["Em carteira",...cols.map(f=>cnt(f,null))],
+    ...SIT.map(s=>[s.k,...cols.map(f=>cnt(f,s.k))])];
+  const ws3=XLSX.utils.aoa_to_sheet(A3); ws3["!cols"]=[{wch:22},...cols.map(()=>({wch:10}))];
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws3,"Resumo");
+  XLSX.utils.book_append_sheet(wb,ws1,"Equipamentos");
+  XLSX.utils.book_append_sheet(wb,ws2,"Por Cliente");
+  return {buf:XLSX.write(wb,{bookType:"xlsx",type:"array"}), n:rows.length};
+}
+async function exportXlsx(){
+  if(!downloadsRef) return;
+  const btn=$("exportXlsx"); btn.disabled=true;
+  try{
+    const {buf,n}=buildWorkbook();
+    const hoje=new Date(), nome=`Previsao Entregas ${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,"0")}-${String(hoje.getDate()).padStart(2,"0")}.xlsx`;
+    await downloadsRef.save({filename:nome, data:new Blob([buf])});
+    toast(`Planilha salva com ${n} equipamentos.`);
+  }catch(e){
+    const c=e&&e.code;
+    if(c==="declined") {}
+    else if(c==="rate_limited") toast("Já existe um pedido de download aberto. Conclua ou feche e tente de novo.");
+    else if(["unavailable","not_granted","capability_disabled","capability_removed"].includes(c)){ downloadsRef=null; toast("Download não disponível nesta visualização."); }
+    else if(c==="extension_not_enabled") toast("Arquivos Excel não estão liberados nesta visualização.");
+    else toast("Não consegui gerar a planilha" + (e&&e.message? ": "+e.message : "."));
+  }finally{ syncExportBtn(); }
+}
+$("exportXlsx").addEventListener("click", exportXlsx);
+$("exportCrono").addEventListener("click", exportCrono);
+
+render();
+
+/* ===== Versão HTML: conecta direto na API do monday com o token pessoal de quem abre ===== */
+const TOKEN_KEY = "pe-monday-token";
+const getToken = () => { try{ return localStorage.getItem(TOKEN_KEY)||""; }catch(e){ return ""; } };
+const setToken = t => { try{ t ? localStorage.setItem(TOKEN_KEY,t) : localStorage.removeItem(TOKEN_KEY); }catch(e){} };
+
+// mesmo formato usado pelo resto do painel (callTool → {data} do GraphQL)
+const mondayApi = {
+  async callTool(_server, _tool, input){
+    const token = getToken();
+    if(!token) throw {code:"no_token", message:"Informe o token do monday."};
+    let res;
+    try{
+      res = await fetch("https://api.monday.com/v2", { method:"POST",
+        headers:{ "Content-Type":"application/json", "Authorization":token, "API-Version":"2025-04" },
+        body: JSON.stringify({ query: input.query }) });
+    }catch(e){ throw {code:"server_unavailable", message:"Sem conexão com o monday. Verifique a internet.", retryable:true}; }
+    if(res.status===401 || res.status===403) throw {code:"bad_token", message:"Token recusado pelo monday."};
+    if(res.status===429) throw {code:"server_unavailable", message:"Limite de consultas do monday. Aguarde um minuto.", retryable:true, retryAfterMs:60000};
+    const json = await res.json().catch(()=>null);
+    if(!json) throw {code:"tool_error", message:`Resposta inválida do monday (${res.status}).`};
+    if(json.errors && json.errors.length){
+      const m = json.errors.map(e=>e.message).join("; ");
+      if(/not authenticated|unauthorized|invalid token/i.test(m)) throw {code:"bad_token", message:m};
+      throw {code:"tool_error", message:m};
+    }
+    if(json.error_message) throw {code:/auth/i.test(json.error_message)?"bad_token":"tool_error", message:json.error_message};
+    return json;
+  }
+};
+
+// downloads direto pelo navegador
+downloadsRef = {
+  async save({filename, data}){
+    const blob = data instanceof Blob ? data : new Blob([data]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    return {status:"saved"};
+  }
+};
+syncExportBtn();
+
+function showTokenForm(msg){
+  $("banners").innerHTML = `<div class="token-card">
+    <h2>Conectar ao monday</h2>
+    <p>Este painel lê os quadros de demandas direto do monday com o <b>seu token pessoal</b>. Ele fica salvo só neste navegador e não vai para nenhum outro lugar.</p>
+    <ol>
+      <li>No monday, clique na sua foto (canto superior direito) → <b>Desenvolvedores</b>.</li>
+      <li>Abra <b>Meus tokens de acesso</b> e clique em <b>Mostrar</b> → copie o token.</li>
+      <li>Cole abaixo e clique em <b>Conectar</b>.</li>
+    </ol>
+    ${msg ? `<div class="token-err">${esc(msg)}</div>` : ""}
+    <form id="tokenForm" class="token-row">
+      <input id="tokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="Cole aqui o token do monday" aria-label="Token do monday">
+      <button class="btn pri" type="submit">Conectar</button>
+    </form>
+  </div>`;
+  $("stamp").innerHTML = `<span class="dot err"></span>Sem conexão`;
+  $("tokenForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const t = $("tokenInput").value.trim(); if(!t) return;
+    setToken(t); await startLive();
+  });
+  setTimeout(()=>$("tokenInput") && $("tokenInput").focus(), 0);
+}
+
+let liveTimer = null;
+async function startLive(){
+  if(!getToken()){ showTokenForm(); return; }
+  $("banners").innerHTML = "";
+  mcpRef = mondayApi;
+  await refresh();
+  // token recusado em todas as filiais: pede de novo
+  const errs = Object.values(state.errors);
+  // token errado: o monday responde 401 sem cabeçalho CORS, e o navegador só enxerga "falha de conexão"
+  const nadaCarregou = !FILIAIS.some(f=>state.rows[f]);
+  if(nadaCarregou && errs.length===BOARDS.length && errs.every(e=>e && (e.code==="bad_token" || e.code==="server_unavailable"))){
+    const token = errs.every(e=>e.code==="bad_token");
+    setToken(""); mcpRef=null; state.rows={}; state.errors={}; render();
+    showTokenForm(token ? "O monday recusou esse token. Confira se copiou o token inteiro e tente de novo."
+      : "Não consegui acessar o monday com esse token. Se a internet estiver funcionando, o token provavelmente está incorreto ou incompleto. Copie de novo e tente outra vez.");
+    return;
+  }
+  if(!liveTimer){
+    liveTimer = setInterval(()=>{ if(document.visibilityState==="visible") refresh(); }, 5*60*1000);
+    document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && state.updated && Date.now()-state.updated>5*60*1000) refresh(); });
+  }
+}
+$("tokenReset").addEventListener("click", ()=>{
+  setToken(""); mcpRef=null; state.rows={}; state.errors={}; state.updated=null; render(); showTokenForm();
+});
+startLive();
+</script>
+
+</body>
+</html>
