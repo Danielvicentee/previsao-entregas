@@ -7,22 +7,23 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap">
 <style>
 /* Manual de Uso da Marca Carmak: #a9cc44 · #39653b · #003938 · #ffffff · #eb0a1e · Roboto */
+/* Visual único em tons claros (sem modo escuro) */
 :root{
+  color-scheme:light;
   --lima:#a9cc44; --verde:#39653b; --escuro:#003938;
-  --bg:#eef1ee; --panel:#ffffff; --ink:#003938; --ink2:#4a5a54; --muted:#7d8d86; --line:#d6ddd6;
+  --bg:#f3f6f1; --panel:#ffffff; --ink:#003938; --ink2:#3f5a52; --muted:#6f8580; --line:#d9e2d6;
 }
-@media (prefers-color-scheme: dark){ :root{ color-scheme:dark; --bg:#081c1b; --panel:#0f2826; --ink:#e8f0ea; --ink2:#b3c4bb; --muted:#80958c; --line:#21403d; } }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
 .wrap{max-width:1500px;margin:0 auto;padding-inline:20px;padding-block:20px;display:flex;flex-direction:column;gap:14px;min-height:100%}
-header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:var(--escuro);border-bottom:5px solid var(--lima);border-radius:12px;padding:14px 18px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:#ffffff;border:1px solid var(--line);border-bottom:5px solid var(--lima);border-radius:12px;padding:14px 18px;box-shadow:0 1px 2px rgba(0,57,56,.05),0 12px 30px -24px rgba(0,57,56,.35)}
 .brand{display:flex;align-items:center;gap:14px;min-width:0}
 .mark{height:44px;width:auto;background:#fff;border-radius:8px;padding:6px 10px;display:block;flex:none}
-h1{margin:0;font-size:24px;font-weight:900;color:#fff;white-space:nowrap}
+h1{margin:0;font-size:24px;font-weight:900;color:var(--escuro);white-space:nowrap}
 nav.tabs{display:flex;gap:6px;flex-wrap:wrap}
-nav.tabs a{color:#d7e3dc;text-decoration:none;border:1px solid var(--lima);border-radius:8px;padding:7px 14px;font-weight:500}
-nav.tabs a:hover{background:rgba(169,204,68,.18)}
+nav.tabs a{color:var(--escuro);background:#fff;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-weight:500}
+nav.tabs a:hover{border-color:var(--lima);background:#f4f8e8}
 nav.tabs a[aria-current="page"]{background:var(--lima);color:#003938;font-weight:700}
 nav.tabs a:focus-visible{outline:2px solid var(--lima);outline-offset:2px}
 .hint{font-size:12px;color:var(--muted)}

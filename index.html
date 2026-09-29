@@ -5,38 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Previsão de Entregas Oficinas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap">
 <style>
 /* Paleta e tipografia: Manual de Uso da Marca Carmak (#a9cc44 lima · #39653b verde · #003938 escuro · #ffffff · #eb0a1e vermelho · Roboto) */
+/* Visual único em tons claros (sem modo escuro), conforme o manual da marca */
 :root{
+  color-scheme:light;
   --lima:#a9cc44; --verde:#39653b; --escuro:#003938; --vermelho:#eb0a1e; --branco:#ffffff;
-  --bg:#eef1ee; --panel:#ffffff; --ink:#003938; --ink2:#4a5a54; --muted:#7d8d86; --line:#d6ddd6; --line2:#e7ece7;
-  --head:#003938; --head-ink:#ffffff; --head-sub:#b9d27a;
+  --bg:#f3f6f1; --panel:#ffffff; --ink:#003938; --ink2:#3f5a52; --muted:#6f8580; --line:#d9e2d6; --line2:#e9efe6;
+  --head:#ffffff; --head-ink:#003938; --head-sub:#39653b;
   --accent:#39653b; --accent-ink:#39653b; --accent-soft:#e6efd0; --bar:#a9cc44;
   --late:#eb0a1e; --late-soft:#fde3e5; --soon:#d98a1c; --soon-soft:#fbeed8;
   --ok:#39653b; --ok-soft:#dde9dd; --none:#8a9892; --none-soft:#e6ebe8; --ready:#7fa12a; --ready-soft:#eef5da; --done:#003938; --done-soft:#dbe6e5;
   --seg-on:#003938; --seg-on-ink:#ffffff;
   --display:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"Roboto Mono",ui-monospace,Consolas,monospace;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  color-scheme:dark;
-  --bg:#081c1b; --panel:#0f2826; --ink:#e8f0ea; --ink2:#b3c4bb; --muted:#80958c; --line:#21403d; --line2:#183331;
-  --head:#002a29; --head-ink:#ffffff; --head-sub:#a9cc44;
-  --accent:#a9cc44; --accent-ink:#b9d86a; --accent-soft:#223a1f; --bar:#a9cc44;
-  --late:#ff4d5c; --late-soft:#3d1a1f; --soon:#f0a445; --soon-soft:#3a2c18;
-  --ok:#6fae71; --ok-soft:#1b3a25; --none:#8fa39b; --none-soft:#1f3432; --ready:#a9cc44; --ready-soft:#26381a; --done:#8cc4c0; --done-soft:#173532;
-  --seg-on:#a9cc44; --seg-on-ink:#003938;
-}}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#081c1b; --panel:#0f2826; --ink:#e8f0ea; --ink2:#b3c4bb; --muted:#80958c; --line:#21403d; --line2:#183331;
-  --head:#002a29; --head-ink:#ffffff; --head-sub:#a9cc44;
-  --accent:#a9cc44; --accent-ink:#b9d86a; --accent-soft:#223a1f; --bar:#a9cc44;
-  --late:#ff4d5c; --late-soft:#3d1a1f; --soon:#f0a445; --soon-soft:#3a2c18;
-  --ok:#6fae71; --ok-soft:#1b3a25; --none:#8fa39b; --none-soft:#1f3432; --ready:#a9cc44; --ready-soft:#26381a; --done:#8cc4c0; --done-soft:#173532;
-  --seg-on:#a9cc44; --seg-on-ink:#003938;
+  --mono:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;margin:0}
@@ -45,15 +29,15 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
 h1{font-size:24px;font-weight:900;letter-spacing:0;color:var(--head-ink)}
 h2{font-size:15px;font-weight:700;color:var(--ink)}
 .num{font-variant-numeric:tabular-nums}
-header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:var(--head);border-bottom:5px solid var(--lima);border-radius:12px;padding:14px 18px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:var(--head);border:1px solid var(--line);border-bottom:5px solid var(--lima);border-radius:12px;padding:14px 18px;box-shadow:0 1px 2px rgba(0,57,56,.05),0 12px 30px -24px rgba(0,57,56,.35)}
 .brand{display:flex;align-items:center;gap:14px;min-width:0}
 .mark{height:44px;width:auto;background:#fff;border-radius:8px;padding:6px 10px;display:block;flex:none}
 .sub{color:var(--head-sub);font-size:13px;margin-top:2px}
-header.top .stamp{color:#d7e3dc}
+header.top .stamp{color:var(--muted)}
 header.top .btn{background:var(--lima);border-color:var(--lima);color:#003938;font-weight:700}
-header.top .btn:hover{background:#bcd966}
-header.top .btn.ghost{background:transparent;color:#ffffff;border-color:#a9cc44;font-weight:500}
-header.top .btn.ghost:hover{background:rgba(169,204,68,.18)}
+header.top .btn:hover{background:#b8d65c}
+header.top .btn.ghost{background:#ffffff;color:var(--escuro);border-color:var(--line);font-weight:500}
+header.top .btn.ghost:hover{border-color:var(--lima);background:#f4f8e8}
 [hidden]{display:none!important}
 a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .token-card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--lima);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;max-width:640px}
