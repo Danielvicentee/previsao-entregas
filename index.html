@@ -619,12 +619,13 @@ function render(){
   for(const r of sel){ const key=r.filial+"|"+r.itemId; if(!map.has(key)) map.set(key,{...r, list:[]}); map.get(key).list.push(r); }
   const clis = [...map.values()].map(c=>{
     const L=c.list, pend=L.filter(r=>PEND.includes(r.sit));
-    const datas = pend.map(r=>r.entrega).filter(Boolean);
+    // próxima entrega = menor data entre as máquinas ainda não entregues (pendentes e prontas)
+    const datas = L.filter(r=>r.sit!=="Entregue").map(r=>r.entrega).filter(Boolean);
     const all = L.map(r=>r.entrega).filter(Boolean);
     return {c, eq:L.length, pend:pend.length, atr:cnt(L,"Atrasado"), pr:cnt(L,"Pronto p/ entrega"), ent:cnt(L,"Entregue"),
-      prox: usaPrimeiraMonday(c.boardId) ? c.primeira : (datas.length? new Date(Math.min(...datas)) : null), ult: all.length? new Date(Math.max(...all)) : null};
+      prox: datas.length? new Date(Math.min(...datas)) : null, ult: all.length? new Date(Math.max(...all)) : null};
   }).sort((a,b)=> b.atr-a.atr || (a.prox?a.prox:Infinity)-(b.prox?b.prox:Infinity) || b.pend-a.pend);
-  $("tCli").innerHTML = clis.length ? `<thead><tr><th>Cliente / demanda</th><th style="text-align:left">Status da demanda</th><th>Equip.</th><th>Pendentes</th><th>Atrasados</th><th>Prontos</th><th>Entregues</th><th>Primeira entrega</th><th>Última prevista</th><th>% concluído</th></tr></thead><tbody>` +
+  $("tCli").innerHTML = clis.length ? `<thead><tr><th>Cliente / demanda</th><th style="text-align:left">Status da demanda</th><th>Equip.</th><th>Pendentes</th><th>Atrasados</th><th>Prontos</th><th>Entregues</th><th>Próxima entrega</th><th>Última prevista</th><th>% concluído</th></tr></thead><tbody>` +
     clis.map(x=>{ const p=x.eq?(x.pr+x.ent)/x.eq:0; const k=x.c.filial+"|"+x.c.itemId, open=fichaAberta(k); return `<tr class="cli-row${open?" open":""}"><td class="wrap-t"><div class="cli-head"><button type="button" class="caret" data-ficha="${esc(k)}" aria-expanded="${open}" aria-label="${open?"Fechar":"Ver"} máquinas de ${esc(x.c.cliente)}">▸</button><div><a href="https://carmak-unit.monday.com/boards/${x.c.boardId}/pulses/${x.c.itemId}" target="_blank" rel="noopener" class="cli-name">${esc(x.c.cliente)}</a><div class="cli-sub">${esc(x.c.filial)} · ${esc(x.c.tipo||"—")}</div></div></div></td><td style="text-align:left">${esc(x.c.statusDem||"—")}</td><td>${x.eq}</td><td class="${x.pend?"":"z"}">${x.pend}</td><td class="${x.atr?"":"z"}" style="${x.atr?"color:var(--late);font-weight:600":""}">${x.atr}</td><td class="${x.pr?"":"z"}">${x.pr}</td><td class="${x.ent?"":"z"}">${x.ent}</td><td>${x.prox&&x.prox<t0&&x.pend?`<span class="pill p-late">${fmtDY(x.prox)}</span>`:fmtDY(x.prox)}</td><td>${fmtDY(x.ult)}</td><td><div class="pct"><span class="t"><span style="width:${p*100}%"></span></span>${Math.round(p*100)}%</div></td></tr>` + (open ? fichaHtml(x.c.list, t0) : ""); }).join("") + `</tbody>`
     : `<tbody><tr><td class="empty">${hasData?"Nenhuma demanda neste filtro.":"Aguardando dados do monday."}</td></tr></tbody>`;
 }
@@ -831,7 +832,8 @@ function buildWorkbook(){
   const t0=today(), ORD={"Atrasado":0,"Próximos 7 dias":1,"No prazo":2,"Sem previsão":3,"Pronto p/ entrega":4};
   const rows=visiveis(allRows().map(withBase).map(r=>({...r,sit:situacao(r,t0)})))
     .sort((a,b)=>FILIAIS.indexOf(a.filial)-FILIAIS.indexOf(b.filial) || ORD[a.sit]-ORD[b.sit] || (a.entrega||Infinity)-(b.entrega||Infinity) || a.cliente.localeCompare(b.cliente,"pt"));
-  const d = v => v || null;
+  // datas gravadas como número de série do Excel (evita o erro de fuso que voltava um dia)
+  const d = v => v ? {t:"n", v:dateSerial(v), z:"dd/mm/yyyy"} : null;
   const dias = r => (r.entrega && PEND.includes(r.sit) && r.sit!=="Sem previsão") ? Math.round((r.entrega-t0)/DAY) : null;
   const link = r => `https://carmak-unit.monday.com/boards/${r.boardId}/pulses/${r.itemId}`;
 
@@ -848,13 +850,13 @@ function buildWorkbook(){
   // Aba 2: por cliente
   const map=new Map();
   for(const r of rows){ const k=r.filial+"|"+r.itemId; if(!map.has(k)) map.set(k,{r,list:[]}); map.get(k).list.push(r); }
-  const H2=["Filial","Cliente / Demanda","Tipo","Status da demanda","Equip.","Pendentes","Atrasados","Prontos","Entregues","Primeira entrega","Última entrega prevista","% concluído","Link monday"];
+  const H2=["Filial","Cliente / Demanda","Tipo","Status da demanda","Equip.","Pendentes","Atrasados","Prontos","Entregues","Próxima entrega","Última entrega prevista","% concluído","Link monday"];
   const A2=[H2, ...[...map.values()].map(({r,list})=>{
     const pend=list.filter(x=>PEND.includes(x.sit)); const pr=list.filter(x=>x.sit==="Pronto p/ entrega").length; const ent=list.filter(x=>x.sit==="Entregue").length;
-    const prox=pend.map(x=>x.entrega).filter(Boolean), all=list.map(x=>x.entrega).filter(Boolean);
+    const prox=list.filter(x=>x.sit!=="Entregue").map(x=>x.entrega).filter(Boolean), all=list.map(x=>x.entrega).filter(Boolean);
     return [r.filial,r.cliente,r.tipo,r.statusDem,list.length,pend.length,list.filter(x=>x.sit==="Atrasado").length,pr,ent,
-      usaPrimeiraMonday(r.boardId) ? r.primeira : (prox.length?new Date(Math.min(...prox)):null), all.length?new Date(Math.max(...all)):null, list.length?(pr+ent)/list.length:0, link(r)];
-  }).sort((a,b)=>b[6]-a[6] || (a[9]||Infinity)-(b[9]||Infinity))];
+      d(prox.length?new Date(Math.min(...prox)):null), d(all.length?new Date(Math.max(...all)):null), list.length?(pr+ent)/list.length:0, link(r)];
+  }).sort((a,b)=>b[6]-a[6] || ((a[9]&&a[9].v)||Infinity)-((b[9]&&b[9].v)||Infinity))];
   const ws2=XLSX.utils.aoa_to_sheet(A2,{dateNF:"dd/mm/yyyy"});
   for(let i=1;i<A2.length;i++){ const p=XLSX.utils.encode_cell({r:i,c:11}); if(ws2[p]) ws2[p].z="0%"; const c=XLSX.utils.encode_cell({r:i,c:12}); if(ws2[c]) ws2[c].l={Target:ws2[c].v}; }
   ws2["!cols"]=[8,32,15,26,7,10,10,9,10,15,20,11,20].map(w=>({wch:w}));
